@@ -10,10 +10,14 @@ dist/
 .coverage
 htmlcov/
 
-# generated datasets, checkpoints and study output
+# generated datasets, checkpoints and working study output.
+# Results worth keeping are promoted into benchmarks/ by hand, so that what is
+# committed is a deliberate choice rather than whatever happened to be lying around.
 .cache/
 runs/
 results/
+results_*/
+*.log
 *.pt
 *.pkl
 
