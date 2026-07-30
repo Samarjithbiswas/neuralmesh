@@ -7,7 +7,7 @@ just add parameters?**
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-CPU%20only-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/license-MIT-34d399)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-72-34d399)](tests/)
+[![Tests](https://img.shields.io/badge/tests-82-34d399)](tests/)
 [![Cite](https://img.shields.io/badge/cite-CITATION.cff-a78bfa)](CITATION.cff)
 
 A message-passing network with `L` layers can only see `L` hops. For an elliptic PDE
@@ -119,40 +119,45 @@ about absolute accuracy.
 ## The solver is verified, not assumed
 
 Every learned number above is measured against a P1 finite element solver in
-`neuralmesh/fem/`. That solver is checked against answers known in advance, and you
-can reproduce the check in one command:
+`neuralmesh/fem/`. If that solver were wrong, every result in this repository would be
+measuring the wrong thing and would still look fine. So it is checked against thirteen
+properties whose answers are known in advance from theory, not against stored fixtures:
 
 ```bash
-neuralmesh verify
+neuralmesh verify          # 13 checks, a few seconds
+neuralmesh verify --fast   # skip the convergence studies
 ```
 
-```
-finite element verification
---------------------------------------------------------------
-  n=9    nodes=81     h=0.1250   L2 error 1.658e-02
-  n=17   nodes=289    h=0.0625   L2 error 4.298e-03
-  n=33   nodes=1089   h=0.0312   L2 error 1.084e-03
-  observed convergence rates: [1.947, 1.987]
-  PASS  second-order convergence (theory: 2)
-  PASS  linear field reproduced exactly (max error 1.33e-15)
---------------------------------------------------------------
-solver verified
-```
+The checks are grouped by the kind of error they catch.
 
-Two independent checks, both with a known answer:
+**Algebraic properties** catch sign errors, transposed indices and bad assembly. The
+stiffness matrix is symmetric to `0.00e+00` because the bilinear form is. It annihilates
+constants to `1.1e-15`, because a constant field has no gradient. The mass matrix
+integrates to the domain area exactly. Both matrices have the right definiteness, with
+stiffness carrying exactly one zero mode for the constant.
 
-- **Convergence rate.** A manufactured solution `u = sin(pi x) sin(pi y)` with the
-  matching source. Theory says the mass-weighted L2 error falls as `h^2`. The measured
-  rates are 1.947 and 1.987. A bug in the stiffness assembly almost always breaks the
-  rate even when it leaves the solution looking plausible.
-- **Exactness on linear fields.** A P1 space contains every linear function, so
-  `u = 2x - 3y + 1` must be reproduced to round-off rather than to discretisation
-  error. Measured max error 1.3e-15.
+**Consistency checks** catch a solver that assembles correctly and then solves the wrong
+problem: linearity in the source, the maximum principle, exact imposition of Dirichlet
+data, and a peak response that scales as one over conductivity (measured ratio 8.000
+against a conductivity ratio of 8).
 
-The test suite adds the properties that catch sign and indexing errors: the stiffness
-matrix is symmetric, it annihilates constants, the mass matrix sums exactly to the
-domain area, the response scales linearly with the load, and a positive source with
-zero boundary data lifts the whole interior (the maximum principle).
+**Convergence** is the only check that verifies the discretisation itself, and theory
+predicts a specific number. Two independent manufactured solutions are used so one lucky
+rate cannot pass the suite:
+
+| manufactured solution | measured rates | theory |
+|---|---|---|
+| `sin(pi x) sin(pi y)` | 1.947, 1.987 | 2 |
+| `x(1-x)y(1-y)` | 1.967, 1.992 | 2 |
+
+**An independent reference** closes the loop. For a unit source on the unit square with
+zero boundary data, separation of variables gives a closed-form series. The solver agrees
+with it to **0.113% of the peak**, and that comparison relies on no other part of this
+codebase being correct.
+
+The suite is itself tested. `tests/test_verify.py` monkeypatches a sign error into the
+stiffness assembly and asserts the suite notices, because thirteen passing checks
+otherwise prove only that the checks run.
 
 ## Install
 
@@ -220,7 +225,9 @@ neuralmesh/
   train/trainer.py      training loop, masked losses, opt-in physics residual
   evaluate/underreach.py   the experiment and its controls
   cli.py                command line
-tests/                  72 tests, physics properties rather than stored fixtures
+tests/                  82 tests, physics properties rather than stored fixtures
+  verify.py             13-check verification suite, with a test that sabotages the
+                        solver to prove the suite would notice
 examples/               reproduce the study
 ```
 

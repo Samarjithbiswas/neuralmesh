@@ -21,51 +21,11 @@ import numpy as np
 
 
 def _verify(args: argparse.Namespace) -> int:
-    """Convergence rate and an exactness check, printed as a pass or fail table."""
-    from .fem.poisson import solve_poisson
-    from .mesh.geometry import unit_square_mesh
+    """Run the verification suite and return a non-zero status if anything fails."""
+    from .verify import report, run
 
-    print("finite element verification")
-    print("-" * 62)
-
-    def exact(p):
-        return np.sin(np.pi * p[:, 0]) * np.sin(np.pi * p[:, 1])
-
-    def source(p):
-        return 2.0 * np.pi**2 * exact(p)
-
-    errors, sizes = [], []
-    for n in (9, 17, 33):
-        mesh = unit_square_mesh(n, jitter=0.0)
-        sol = solve_poisson(mesh, source=source, dirichlet_value=exact)
-        err = sol.l2_error(exact)
-        errors.append(err)
-        sizes.append(1.0 / (n - 1))
-        print(f"  n={n:<4d} nodes={mesh.n_nodes:<6d} h={sizes[-1]:.4f}   L2 error {err:.3e}")
-
-    rates = [
-        float(np.log(errors[i] / errors[i + 1]) / np.log(sizes[i] / sizes[i + 1]))
-        for i in range(len(errors) - 1)
-    ]
-    print(f"  observed convergence rates: {[round(r, 3) for r in rates]}")
-    ok_rate = all(1.7 < r < 2.4 for r in rates)
-    print(f"  {'PASS' if ok_rate else 'FAIL'}  second-order convergence (theory: 2)")
-
-    def linear(p):
-        return 2.0 * p[:, 0] - 3.0 * p[:, 1] + 1.0
-
-    mesh = unit_square_mesh(12, jitter=0.25, seed=3)
-    exact_err = solve_poisson(mesh, source=0.0, dirichlet_value=linear).max_error(linear)
-    ok_exact = exact_err < 1e-12
-    print(
-        f"  {'PASS' if ok_exact else 'FAIL'}  linear field reproduced exactly "
-        f"(max error {exact_err:.2e})"
-    )
-
-    print("-" * 62)
-    both = ok_rate and ok_exact
-    print("solver verified" if both else "SOLVER VERIFICATION FAILED")
-    return 0 if both else 1
+    checks = run(full=not args.fast, verbose=args.verbose)
+    return 0 if report(checks) else 1
 
 
 def _solve(args: argparse.Namespace) -> int:
@@ -171,6 +131,14 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("verify", help="check the solver against known answers")
+    p.add_argument(
+        "--fast",
+        action="store_true",
+        help="skip the convergence studies and the analytical reference",
+    )
+    p.add_argument(
+        "--verbose", action="store_true", help="print the error at each refinement level"
+    )
     p.set_defaults(func=_verify)
 
     p = sub.add_parser("solve", help="solve one diffusion case and print a summary")
