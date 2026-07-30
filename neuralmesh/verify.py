@@ -291,6 +291,156 @@ def check_series_reference() -> Check:
     )
 
 
+# ------------------------------------------------------------------ 3D nonlinear solver
+def check_3d_volume() -> Check:
+    from .fem.mesh3d import box_mesh
+
+    m = box_mesh(6, 5, 4, lx=2.0, ly=1.5, lz=0.5, jitter=0.3, seed=1)
+    got = float(m.volumes().sum())
+    err = abs(got - 1.5)
+    return Check(
+        "3D mesh volume is exact under interior jitter",
+        err < 1e-12,
+        f"sum of tet volumes {got:.12f} against exact 1.5, error {err:.2e}",
+        "nonlinear3d",
+    )
+
+
+def check_3d_orientation() -> Check:
+    from .fem.mesh3d import box_mesh
+
+    lo = float(box_mesh(6, 6, 6, jitter=0.35, seed=2).signed_volumes().min())
+    return Check(
+        "every tetrahedron is positively oriented",
+        lo > 0.0,
+        f"smallest signed volume {lo:.3e}, a negative one flips every element integral",
+        "nonlinear3d",
+    )
+
+
+def check_3d_patch_test() -> Check:
+    from .fem.mesh3d import box_mesh
+    from .fem.nonlinear3d import PowerLawConductivity, solve_nonlinear
+
+    m = box_mesh(6, 6, 6, jitter=0.25, seed=3)
+
+    def exact(p):
+        return 1.0 + 2.0 * p[:, 0] - 0.5 * p[:, 1] + 0.25 * p[:, 2]
+
+    sol = solve_nonlinear(
+        m,
+        source=0.0,
+        law=PowerLawConductivity(alpha=0.0),
+        dirichlet_value=exact,
+        tol=1e-12,
+    )
+    err = sol.max_error(exact)
+    return Check(
+        "3D patch test: linear field reproduced exactly",
+        sol.converged and err < 1e-10,
+        f"max error {err:.2e} on a jittered tetrahedral mesh",
+        "nonlinear3d",
+    )
+
+
+def check_3d_nonlinearity_is_real() -> Check:
+    from .fem.mesh3d import box_mesh
+    from .fem.nonlinear3d import PowerLawConductivity, solve_nonlinear
+
+    m = box_mesh(5, 5, 5, jitter=0.0)
+    law = PowerLawConductivity(k0=1.0, alpha=5.0)
+    a = solve_nonlinear(m, source=20.0, law=law, dirichlet_value=0.0)
+    b = solve_nonlinear(m, source=40.0, law=law, dirichlet_value=0.0)
+    dev = float(np.abs(2.0 * a.u - b.u).max() / max(np.abs(b.u).max(), 1e-300))
+    return Check(
+        "the problem is genuinely nonlinear",
+        dev > 0.05,
+        f"superposition violated by {100 * dev:.1f}%, so u(2f) is not 2u(f)",
+        "nonlinear3d",
+    )
+
+
+def check_3d_tangent() -> Check:
+    """Finite-difference the residual to confirm the analytic Jacobian is correct."""
+    from .fem.mesh3d import box_mesh
+    from .fem.nonlinear3d import PowerLawConductivity, residual_and_tangent
+
+    m = box_mesh(4, 4, 4, jitter=0.15, seed=7)
+    law = PowerLawConductivity(k0=1.3, alpha=2.0)
+    rng = np.random.default_rng(1)
+    u = 0.4 * rng.normal(size=m.n_nodes)
+    load = 0.1 * rng.normal(size=m.n_nodes)
+
+    r0, J = residual_and_tangent(m, u, law, load)
+    A = J.toarray()
+    eps = 1e-7
+    worst = 0.0
+    for j in rng.choice(m.n_nodes, size=min(10, m.n_nodes), replace=False):
+        up = u.copy()
+        up[j] += eps
+        rp, _ = residual_and_tangent(m, up, law, load)
+        fd = (rp - r0) / eps
+        scale = max(float(np.abs(A[:, j]).max()), 1.0)
+        worst = max(worst, float(np.abs(fd - A[:, j]).max()) / scale)
+    return Check(
+        "Newton tangent matches finite differences",
+        worst < 2e-4,
+        f"worst relative column error {worst:.2e}; a dropped dk/du term shows up here",
+        "nonlinear3d",
+    )
+
+
+def check_3d_newton_order(verbose: bool = False) -> Check:
+    from .fem.mesh3d import box_mesh
+    from .fem.nonlinear3d import PowerLawConductivity, manufactured, solve_nonlinear
+
+    law = PowerLawConductivity(k0=1.0, alpha=1.0)
+    exact, src = manufactured(law)
+    sol = solve_nonlinear(
+        box_mesh(7, 7, 7, jitter=0.0),
+        source=src,
+        law=law,
+        dirichlet_value=exact,
+        tol=1e-12,
+        verbose=verbose,
+    )
+    orders = sol.history.convergence_orders()
+    ok = bool(orders) and max(orders) > 1.7
+    return Check(
+        "Newton converges quadratically",
+        sol.converged and ok,
+        f"observed orders {[round(o, 2) for o in orders]} in "
+        f"{sol.history.iterations} iterations; 2 means the tangent is consistent",
+        "nonlinear3d",
+    )
+
+
+def check_3d_convergence(verbose: bool = False) -> Check:
+    from .fem.mesh3d import box_mesh
+    from .fem.nonlinear3d import PowerLawConductivity, manufactured, solve_nonlinear
+
+    law = PowerLawConductivity(k0=1.0, alpha=1.0)
+    exact, src = manufactured(law)
+    errors, hs = [], []
+    for n in (5, 9, 17):
+        m = box_mesh(n, n, n, jitter=0.0)
+        sol = solve_nonlinear(m, source=src, law=law, dirichlet_value=exact, tol=1e-11)
+        errors.append(sol.l2_error(exact))
+        hs.append(1.0 / (n - 1))
+        if verbose:
+            print(f"      h = {hs[-1]:.4f}  nodes {m.n_nodes:6d}  L2 = {errors[-1]:.4e}")
+    rates = [
+        float(np.log(errors[i] / errors[i + 1]) / np.log(hs[i] / hs[i + 1]))
+        for i in range(len(errors) - 1)
+    ]
+    return Check(
+        "3D nonlinear problem converges at second order",
+        bool(rates) and max(rates) > 1.8 and min(rates) > 1.5,
+        f"rates {[round(r, 3) for r in rates]} against theory 2, manufactured solution",
+        "nonlinear3d",
+    )
+
+
 FAST = [
     check_symmetry,
     check_constant_nullspace,
@@ -302,12 +452,19 @@ FAST = [
     check_maximum_principle,
     check_boundary_imposed,
     check_conductivity_monotone,
+    check_3d_volume,
+    check_3d_orientation,
+    check_3d_patch_test,
+    check_3d_nonlinearity_is_real,
+    check_3d_tangent,
 ]
 
 SLOW = [
     check_convergence_trig,
     check_convergence_poly,
     check_series_reference,
+    check_3d_newton_order,
+    check_3d_convergence,
 ]
 
 GROUP_TITLE = {
@@ -315,6 +472,7 @@ GROUP_TITLE = {
     "consistency": "Consistency  (catch solving the wrong problem correctly)",
     "convergence": "Convergence  (verify the discretisation against theory)",
     "reference": "Independent reference  (does not rely on this codebase)",
+    "nonlinear3d": "3D nonlinear solver  (tetrahedra, k(u), Newton-Raphson)",
 }
 
 
@@ -334,7 +492,7 @@ def report(checks: list[Check], width: int = 78) -> bool:
     print("neuralmesh finite element verification")
     print("=" * width)
 
-    for group in ("algebraic", "consistency", "convergence", "reference"):
+    for group in ("algebraic", "consistency", "convergence", "reference", "nonlinear3d"):
         rows = [c for c in checks if c.group == group]
         if not rows:
             continue

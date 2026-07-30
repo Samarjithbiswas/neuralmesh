@@ -7,7 +7,8 @@ just add parameters?**
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-CPU%20only-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/license-MIT-34d399)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-82-34d399)](tests/)
+[![Tests](https://img.shields.io/badge/tests-112-34d399)](tests/)
+[![Verify](https://img.shields.io/badge/verify-20%20checks-2dd4bf)](neuralmesh/verify.py)
 [![Cite](https://img.shields.io/badge/cite-CITATION.cff-a78bfa)](CITATION.cff)
 
 A message-passing network with `L` layers can only see `L` hops. For an elliptic PDE
@@ -109,22 +110,51 @@ aggregate win is real and reproducible, but it is not the case that attention im
 every region. I do not have a confident explanation for the band 2 behaviour and would
 want more seeds before theorising about it.
 
-**Caveats that belong next to these numbers.** One seed per configuration, so the
-42/40/42% agreement is suggestive rather than an error bar. 49 training cases is small.
-90 epochs is short enough that all four models are still improving. This is 2D scalar
-steady diffusion. The result is about architecture ranking under identical budgets, not
-about absolute accuracy.
+### It survives reseeding
+
+The table above is one seed per configuration, which makes it suggestive and nothing
+more. So the headline was rerun at five seeds, paired within each seed: every seed trains
+all four models on the same data in the same order, so seed-to-seed variation is shared
+and differencing within a seed removes it.
+
+Diameter 40, five seeds. Raw output in [`benchmarks/seeds_aspect8.json`](benchmarks/seeds_aspect8.json).
+
+| architecture | params | mean relative L2 | std | min | max |
+|---|---:|---:|---:|---:|---:|
+| control (no comms) | 17,281 | 0.9596 | 0.0354 | 0.9315 | 1.0204 |
+| MeshGraphNet L=4 | 130,113 | 0.1625 | 0.0181 | 0.1460 | 0.1843 |
+| MeshGraphNet L=16 | 480,321 | 0.1188 | 0.0187 | 0.0869 | 0.1343 |
+| **MGN-Transformer L=4** | **130,981** | **0.0864** | **0.0156** | **0.0753** | **0.1124** |
+
+Paired, against the parameter-matched baseline:
+
+```
+per-seed improvement: +50.3%, +50.3%, +58.3%, +48.3%, +23.0%
+mean +46.0%   std 13.4%   sign agrees on 5/5 seeds
+```
+
+Five out of five is a sign test at p = 1/32, so about 0.03 one-sided. That is a small
+sample and a weak instrument, and it is the honest summary at five seeds: the direction
+is consistent, the magnitude is not tightly pinned. Note also that the transformer's mean
+beats the **3.7x larger** deep baseline with the intervals barely overlapping.
+
+Reproduce with `python examples/seed_study.py --seeds 5 --aspect 8`.
+
+**Caveats that still stand.** 49 training cases is small. 90 epochs is short enough that
+all four models are still improving. The two-dimensional study is scalar steady
+diffusion, which is a deliberately clean setting rather than a hard one. The result is
+about architecture ranking under identical budgets, not about absolute accuracy.
 
 
 ## The solver is verified, not assumed
 
 Every learned number above is measured against a P1 finite element solver in
 `neuralmesh/fem/`. If that solver were wrong, every result in this repository would be
-measuring the wrong thing and would still look fine. So it is checked against thirteen
+measuring the wrong thing and would still look fine. So it is checked against twenty
 properties whose answers are known in advance from theory, not against stored fixtures:
 
 ```bash
-neuralmesh verify          # 13 checks, a few seconds
+neuralmesh verify          # 20 checks, a few seconds
 neuralmesh verify --fast   # skip the convergence studies
 ```
 
@@ -155,9 +185,60 @@ zero boundary data, separation of variables gives a closed-form series. The solv
 with it to **0.113% of the peak**, and that comparison relies on no other part of this
 codebase being correct.
 
+**The 3D nonlinear solver** contributes seven further checks: exact volume under
+interior jitter, positive orientation of every tetrahedron, a 3D patch test to 2.2e-15,
+confirmation that the problem is genuinely nonlinear, the finite-difference tangent
+check, quadratic Newton convergence, and second-order spatial convergence.
+
 The suite is itself tested. `tests/test_verify.py` monkeypatches a sign error into the
-stiffness assembly and asserts the suite notices, because thirteen passing checks
+stiffness assembly and asserts the suite notices, because twenty passing checks
 otherwise prove only that the checks run.
+
+## A harder problem: 3D nonlinear diffusion
+
+The 2D study above isolates under-reaching cleanly, and that is exactly why it is a weak
+headline: a reviewer will reasonably ask whether the result survives real dimensionality
+and real nonlinearity. `neuralmesh/fem/mesh3d.py` and `neuralmesh/fem/nonlinear3d.py` are
+the first half of answering that.
+
+The problem is quasilinear and elliptic, on tetrahedra:
+
+```
+-div( k(u) grad u ) = f        k(u) = k0 (1 + alpha u^2)
+```
+
+Genuinely nonlinear, not a linear problem with awkward coefficients: superposition fails
+by **38%** at the amplitudes used in the verification suite, so `u(2f)` is not `2u(f)`.
+It stays elliptic, so the interior still depends on every boundary value, which is the
+property under-reaching is about. And it admits an exact manufactured solution, so it can
+be verified rather than trusted.
+
+Solved by Newton-Raphson with a **consistent tangent**, including the `dk/du` term. That
+term is easy to omit, and omitting it still converges, just linearly, with the converged
+answer still looking correct. Two checks catch it:
+
+- the analytic Jacobian is compared column by column against a finite-difference
+  Jacobian, agreeing to **2.3e-08**
+- the observed Newton order is **2.61, 1.96, 2.06**, and quadratic convergence is the
+  signature of a correct tangent
+
+The 3D discretisation is verified the same way as the 2D one, by manufactured solution:
+measured rates **1.729, 1.91** against a theoretical 2.
+
+```python
+from neuralmesh.fem.mesh3d import box_mesh, bar_mesh
+from neuralmesh.fem.nonlinear3d import solve_nonlinear, manufactured, PowerLawConductivity
+
+law = PowerLawConductivity(k0=1.0, alpha=1.0)
+exact, source = manufactured(law)
+sol = solve_nonlinear(box_mesh(9, 9, 9), source=source, law=law, dirichlet_value=exact)
+print(sol.converged, sol.l2_error(exact), sol.history.convergence_orders())
+```
+
+`bar_mesh` is the 3D analogue of the 2D strip, so the same diameter-versus-reach
+experiment can be run on this problem. Training the learned models on it is the next
+step and is **not done yet**: see [ROADMAP.md](ROADMAP.md) for what is and is not
+finished.
 
 ## Install
 
@@ -217,7 +298,9 @@ python examples/run_underreach.py --sweep 4 8 16       # error against graph dia
 neuralmesh/
   mesh/geometry.py      TriMesh, structured and jittered meshes, uniform refinement
   mesh/graph.py         mesh to graph, relative-geometry edge features, BFS diameter
-  fem/poisson.py        P1 assembly, Dirichlet constraints, verified convergence
+  fem/poisson.py        2D P1 assembly, Dirichlet constraints, verified convergence
+  fem/mesh3d.py         tetrahedral meshes, Kuhn subdivision, quality metrics
+  fem/nonlinear3d.py    3D nonlinear diffusion, Newton with a consistent tangent
   models/blocks.py      MLP, residual message passing, physics attention with
                         a learned distance bias, chunked to bound O(N^2) memory
   models/architectures.py  the three architectures plus capacity matching
@@ -225,7 +308,7 @@ neuralmesh/
   train/trainer.py      training loop, masked losses, opt-in physics residual
   evaluate/underreach.py   the experiment and its controls
   cli.py                command line
-tests/                  82 tests, physics properties rather than stored fixtures
+tests/                  112 tests, physics properties rather than stored fixtures
   verify.py             13-check verification suite, with a test that sabotages the
                         solver to prove the suite would notice
 examples/               reproduce the study

@@ -1,0 +1,239 @@
+{
+  "config": {
+    "seeds": 5,
+    "aspect": 8.0,
+    "samples": 70,
+    "epochs": 90,
+    "ny": 6,
+    "shallow": 4,
+    "deep": 16,
+    "hidden": 64,
+    "out": "results\\seeds_aspect8.json"
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "graph_diameter": 40,
+      "n_nodes": 246,
+      "rel_l2": {
+        "node MLP (no comms)": 0.9557736407626759,
+        "MeshGraphNet L=4": 0.1800246529958465,
+        "MeshGraphNet L=16": 0.12631668895483017,
+        "MGN-Transformer L=4": 0.08948244594714859
+      },
+      "deep_band": {
+        "node MLP (no comms)": 0.7667345362887006,
+        "MeshGraphNet L=4": 0.3043976441657494,
+        "MeshGraphNet L=16": 0.24693557180759568,
+        "MGN-Transformer L=4": 0.23352695775779211
+      },
+      "params": {
+        "node MLP (no comms)": 17281,
+        "MeshGraphNet L=4": 130113,
+        "MeshGraphNet L=16": 480321,
+        "MGN-Transformer L=4": 130981
+      }
+    },
+    {
+      "seed": 1,
+      "graph_diameter": 40,
+      "n_nodes": 246,
+      "rel_l2": {
+        "node MLP (no comms)": 1.0203953818841414,
+        "MeshGraphNet L=4": 0.15136905759572983,
+        "MeshGraphNet L=16": 0.0869471976025538,
+        "MGN-Transformer L=4": 0.07529795440760526
+      },
+      "deep_band": {
+        "node MLP (no comms)": 0.8072095445039105,
+        "MeshGraphNet L=4": 0.21476511698251233,
+        "MeshGraphNet L=16": 0.12715261098817002,
+        "MGN-Transformer L=4": 0.12926514604333625
+      },
+      "params": {
+        "node MLP (no comms)": 17281,
+        "MeshGraphNet L=4": 130113,
+        "MeshGraphNet L=16": 480321,
+        "MGN-Transformer L=4": 130981
+      }
+    },
+    {
+      "seed": 2,
+      "graph_diameter": 40,
+      "n_nodes": 246,
+      "rel_l2": {
+        "node MLP (no comms)": 0.9388876123861833,
+        "MeshGraphNet L=4": 0.184262406419624,
+        "MeshGraphNet L=16": 0.12838186459107834,
+        "MGN-Transformer L=4": 0.07681301710280505
+      },
+      "deep_band": {
+        "node MLP (no comms)": 0.3940464137582479,
+        "MeshGraphNet L=4": 0.36147371057749544,
+        "MeshGraphNet L=16": 0.20311504276462478,
+        "MGN-Transformer L=4": 0.16682275148767362
+      },
+      "params": {
+        "node MLP (no comms)": 17281,
+        "MeshGraphNet L=4": 130113,
+        "MeshGraphNet L=16": 480321,
+        "MGN-Transformer L=4": 130981
+      }
+    },
+    {
+      "seed": 3,
+      "graph_diameter": 40,
+      "n_nodes": 246,
+      "rel_l2": {
+        "node MLP (no comms)": 0.9314590150659735,
+        "MeshGraphNet L=4": 0.1506457979028875,
+        "MeshGraphNet L=16": 0.11829068308526819,
+        "MGN-Transformer L=4": 0.077893082391132
+      },
+      "deep_band": {
+        "node MLP (no comms)": 0.6638613737742671,
+        "MeshGraphNet L=4": 0.3056635727648721,
+        "MeshGraphNet L=16": 0.3177395893872521,
+        "MGN-Transformer L=4": 0.12216743224174124
+      },
+      "params": {
+        "node MLP (no comms)": 17281,
+        "MeshGraphNet L=4": 130113,
+        "MeshGraphNet L=16": 480321,
+        "MGN-Transformer L=4": 130981
+      }
+    },
+    {
+      "seed": 4,
+      "graph_diameter": 40,
+      "n_nodes": 246,
+      "rel_l2": {
+        "node MLP (no comms)": 0.9513355168429288,
+        "MeshGraphNet L=4": 0.14600016921758652,
+        "MeshGraphNet L=16": 0.1342848458073356,
+        "MGN-Transformer L=4": 0.11241424117575992
+      },
+      "deep_band": {
+        "node MLP (no comms)": 0.5780510356039854,
+        "MeshGraphNet L=4": 0.4184106007920234,
+        "MeshGraphNet L=16": 0.45740654135210207,
+        "MGN-Transformer L=4": 0.48946669228313805
+      },
+      "params": {
+        "node MLP (no comms)": 17281,
+        "MeshGraphNet L=4": 130113,
+        "MeshGraphNet L=16": 480321,
+        "MGN-Transformer L=4": 130981
+      }
+    }
+  ],
+  "summary": {
+    "node MLP (no comms)": {
+      "params": 17281,
+      "mean": 0.9595702333883805,
+      "std": 0.035355108431354754,
+      "min": 0.9314590150659735,
+      "max": 1.0203953818841414,
+      "values": [
+        0.9557736407626759,
+        1.0203953818841414,
+        0.9388876123861833,
+        0.9314590150659735,
+        0.9513355168429288
+      ],
+      "deep_mean": 0.6419805807858223,
+      "deep_std": 0.16500095976507553,
+      "deep_values": [
+        0.7667345362887006,
+        0.8072095445039105,
+        0.3940464137582479,
+        0.6638613737742671,
+        0.5780510356039854
+      ]
+    },
+    "MeshGraphNet L=4": {
+      "params": 130113,
+      "mean": 0.16246041682633489,
+      "std": 0.018147812290150715,
+      "min": 0.14600016921758652,
+      "max": 0.184262406419624,
+      "values": [
+        0.1800246529958465,
+        0.15136905759572983,
+        0.184262406419624,
+        0.1506457979028875,
+        0.14600016921758652
+      ],
+      "deep_mean": 0.3209421290565305,
+      "deep_std": 0.07570274803246588,
+      "deep_values": [
+        0.3043976441657494,
+        0.21476511698251233,
+        0.36147371057749544,
+        0.3056635727648721,
+        0.4184106007920234
+      ]
+    },
+    "MeshGraphNet L=16": {
+      "params": 480321,
+      "mean": 0.11884425600821322,
+      "std": 0.01872794584892759,
+      "min": 0.0869471976025538,
+      "max": 0.1342848458073356,
+      "values": [
+        0.12631668895483017,
+        0.0869471976025538,
+        0.12838186459107834,
+        0.11829068308526819,
+        0.1342848458073356
+      ],
+      "deep_mean": 0.2704698712599489,
+      "deep_std": 0.12530973439954055,
+      "deep_values": [
+        0.24693557180759568,
+        0.12715261098817002,
+        0.20311504276462478,
+        0.3177395893872521,
+        0.45740654135210207
+      ]
+    },
+    "MGN-Transformer L=4": {
+      "params": 130981,
+      "mean": 0.08638014820489016,
+      "std": 0.01560267245626241,
+      "min": 0.07529795440760526,
+      "max": 0.11241424117575992,
+      "values": [
+        0.08948244594714859,
+        0.07529795440760526,
+        0.07681301710280505,
+        0.077893082391132,
+        0.11241424117575992
+      ],
+      "deep_mean": 0.22824979596273626,
+      "deep_std": 0.1525506686031855,
+      "deep_values": [
+        0.23352695775779211,
+        0.12926514604333625,
+        0.16682275148767362,
+        0.12216743224174124,
+        0.48946669228313805
+      ]
+    }
+  },
+  "paired": {
+    "baseline": "MeshGraphNet L=4",
+    "candidate": "MGN-Transformer L=4",
+    "per_seed_improvement_pct": [
+      50.294337770942334,
+      50.25538534519525,
+      58.31324544417518,
+      48.2938897231338,
+      23.00403364038087
+    ],
+    "mean_improvement_pct": 46.03217838476549,
+    "std_improvement_pct": 13.437232567831334,
+    "seeds_favouring_candidate": 5,
+    "n_seeds": 5
+  }
+}
