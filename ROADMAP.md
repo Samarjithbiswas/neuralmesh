@@ -28,7 +28,8 @@ listed as not done is not done, and the README should not read as though it were
 
 | Gap | Why it matters | Status |
 |---|---|---|
-| Learned models trained on the 3D nonlinear problem | The solver exists; the experiment on it does not. Until it runs, the under-reaching result is a 2D scalar result. | not started |
+| Learned models trained on the 3D nonlinear problem | Done. The result is **negative**: error falls with diameter in 3D, so the 2D signature does not reproduce. See below. | done, negative |
+| A diameter sweep that is not confounded | Both sweeps raise node count with diameter, so supervision and required reach move together. `examples/controlled_sweep.py` holds nodes fixed at ~420 while diameter spans 34 to 104. | running |
 | Published operator baselines | The comparison is currently between three architectures written here. A reviewer will ask about FNO, GNO, DeepONet, Transolver, and a published MeshGraphNet configuration. | not started |
 | Larger datasets | 49 training cases per configuration. Hundreds to thousands would be needed before absolute accuracy means anything. | not started |
 | Training to convergence | 90 epochs with all four models still improving. Ranking under a shared short budget is defensible; absolute numbers are not. | not started |
@@ -41,19 +42,29 @@ listed as not done is not done, and the README should not read as though it were
 
 ### The paper that exists now
 
-The publishable contribution today is **methodological, and it is a negative result about
-measurement**: aggregate error metrics systematically hide under-reaching, and here is a
-controlled protocol that exposes it.
+**This section was written before the confound was found, and it no longer holds as
+stated.** Kept here rather than deleted, because quietly rewriting a claim after it fails
+is how a repository stops being trustworthy.
 
-The evidence is already in hand and is genuinely counterintuitive. Across diameters 20,
-40 and 80 the reach-limited baseline shows **no degradation in aggregate relative L2**
-(0.181, 0.163, 0.167). Resolve the same runs by distance from the driven boundary and the
-deep-interior error grows 48% and 85% for the two local models while staying flat for the
-global one. A reader who only saw the aggregate column would conclude under-reaching was
-not present.
+The intended contribution was methodological: aggregate error metrics hide under-reaching,
+and a distance-resolved protocol exposes it. The 2D evidence looked strong, with the
+aggregate flat across diameters 20, 40 and 80 while deep-interior error grew 48% and 85%
+for the local models and stayed flat for the global one.
 
-That is a real finding about how the field reports results, it is supported by
-parameter-matched controls, and it is reproducible from committed data.
+What is wrong with it: the sweep varies diameter by lengthening the strip, so node count
+rises with diameter and supervision is confounded with required reach. The confound
+happens to push against the deep-band finding, which is why it is suggestive rather than
+dead, but it is not a controlled measurement. The 3D replication then produced the
+opposite trend, consistent with the confound dominating.
+
+**What is actually defensible today**, and it is less than the above: at any *fixed*
+diameter, with parameter counts matched and all models seeing identical graphs, the
+global-attention variant beats the reach-limited baseline. That holds in 2D at five seeds
+(+46.0%, sign agreeing 5/5) and in 3D at all three diameters (+28%, +50%, +25%). That is a
+ranking result, not a scaling law, and a ranking result is a workshop paper rather than a
+journal one.
+
+Whether the scaling claim comes back depends on the controlled sweep.
 
 **Realistic venues:** Journal of Computational Physics, Computer Methods in Applied
 Mechanics and Engineering, Engineering Applications of Artificial Intelligence, or a
@@ -87,11 +98,21 @@ implementing baselines faithfully enough that the comparison is fair.
 **Phase 1, foundations.** Done. Verified solvers in 2D and 3D, controlled protocol,
 multi-seed headline.
 
-**Phase 2, move the experiment to 3D.** Port the graph construction and dataset
-generation to `TetMesh`, run the diameter sweep on `bar_mesh`, and find out whether the
-distance-resolved signature survives nonlinearity. This is the next thing to build, and
-it is where the finding is most likely to break. If it does break, that is the result and
-it gets reported.
+**Phase 2 outcome, recorded honestly.** The 3D port is done and the finding did not
+survive: aggregate and deep-interior error both *fall* with diameter, for every
+architecture. Diagnosis is that both sweeps confound diameter with node count, and in 3D
+the extra supervision dominates. So the correct statement is not "under-reaching is
+absent in 3D" but "this design cannot measure it in either dimension". The architecture
+ranking does survive: the transformer wins at all three 3D diameters by 28%, 50% and 25%.
+
+This is the outcome the plan said would be reported if it happened, and it changes what
+Phase 3 is for: baselines now have to be compared under a design that actually isolates
+reach.
+
+**Phase 2b, the corrected sweep.** Hold node count fixed while varying diameter, by
+trading strip width for length. This is the experiment that should have been run first.
+Until it returns, the diameter *trend* is unresolved in both dimensions and the README
+says so.
 
 **Phase 3, baselines.** Implement FNO on the structured box meshes (its FFT needs the
 regular grid, which is a genuine limitation worth documenting rather than hiding),

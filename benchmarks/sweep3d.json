@@ -1,0 +1,53 @@
+[
+  {
+    "aspect": 4.0,
+    "diameter": 15,
+    "nodes": 208,
+    "rel_l2": {
+      "node MLP (no comms)": 0.6255404286914401,
+      "MeshGraphNet L=4": 0.30310048245721394,
+      "MeshGraphNet L=16": 0.25613917658726376,
+      "MGN-Transformer L=4": 0.21971252808968225
+    },
+    "deep_band": {
+      "node MLP (no comms)": 0.23761885660453033,
+      "MeshGraphNet L=4": 0.304535351291021,
+      "MeshGraphNet L=16": 0.2269496543516861,
+      "MGN-Transformer L=4": 0.28876185917028085
+    }
+  },
+  {
+    "aspect": 8.0,
+    "diameter": 27,
+    "nodes": 400,
+    "rel_l2": {
+      "node MLP (no comms)": 0.5598974178234736,
+      "MeshGraphNet L=4": 0.21462515162097084,
+      "MeshGraphNet L=16": 0.21329669488800895,
+      "MGN-Transformer L=4": 0.10784522444009781
+    },
+    "deep_band": {
+      "node MLP (no comms)": 0.17971032852066787,
+      "MeshGraphNet L=4": 0.22258750508115022,
+      "MeshGraphNet L=16": 0.22546967325708397,
+      "MGN-Transformer L=4": 0.15330972234222828
+    }
+  },
+  {
+    "aspect": 12.0,
+    "diameter": 39,
+    "nodes": 592,
+    "rel_l2": {
+      "node MLP (no comms)": 0.5406182540787591,
+      "MeshGraphNet L=4": 0.13380288498269188,
+      "MeshGraphNet L=16": 0.12357044219970703,
+      "MGN-Transformer L=4": 0.10017792218261296
+    },
+    "deep_band": {
+      "node MLP (no comms)": 0.17731810486686936,
+      "MeshGraphNet L=4": 0.15949824639511276,
+      "MeshGraphNet L=16": 0.1806111289632007,
+      "MGN-Transformer L=4": 0.15935062450617063
+    }
+  }
+]

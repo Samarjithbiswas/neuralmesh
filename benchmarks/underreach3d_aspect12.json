@@ -1,0 +1,82 @@
+{
+  "problem": "3D nonlinear diffusion, k(u) = k0 (1 + alpha u^2)",
+  "aspect_ratio": 12.0,
+  "n_nodes": 592,
+  "n_edges": 5970,
+  "graph_diameter": 39,
+  "n_train": 42,
+  "epochs": 90,
+  "band_edges": [
+    0.0,
+    0.125,
+    0.25,
+    0.375,
+    0.5
+  ],
+  "results": [
+    {
+      "name": "node_mlp",
+      "label": "node MLP (no comms)",
+      "n_parameters": 17345,
+      "hidden_dim": 64,
+      "n_blocks": 4,
+      "receptive_hops": 0,
+      "test_mse": 0.1302844039681885,
+      "test_rel_l2": 0.5406182540787591,
+      "rel_l2_by_band": [
+        0.9155868515303365,
+        0.15310421942786942,
+        0.18840166546028259,
+        0.17731810486686936
+      ]
+    },
+    {
+      "name": "meshgraphnet",
+      "label": "MeshGraphNet L=4",
+      "n_parameters": 130241,
+      "hidden_dim": 64,
+      "n_blocks": 4,
+      "receptive_hops": 4,
+      "test_mse": 0.02528586543889509,
+      "test_rel_l2": 0.13380288498269188,
+      "rel_l2_by_band": [
+        0.15196333436328538,
+        0.12545718508465661,
+        0.1575131838224273,
+        0.15949824639511276
+      ]
+    },
+    {
+      "name": "meshgraphnet",
+      "label": "MeshGraphNet L=16",
+      "n_parameters": 480449,
+      "hidden_dim": 64,
+      "n_blocks": 16,
+      "receptive_hops": 16,
+      "test_mse": 0.02718463615100417,
+      "test_rel_l2": 0.12357044219970703,
+      "rel_l2_by_band": [
+        0.12668769230772478,
+        0.1275209380798806,
+        0.16674732748090101,
+        0.1806111289632007
+      ]
+    },
+    {
+      "name": "mesh_graph_transformer",
+      "label": "MGN-Transformer L=4",
+      "n_parameters": 131085,
+      "hidden_dim": 52,
+      "n_blocks": 4,
+      "receptive_hops": -1,
+      "test_mse": 0.023532913357485086,
+      "test_rel_l2": 0.10017792218261296,
+      "rel_l2_by_band": [
+        0.11426853971882397,
+        0.12698669606865118,
+        0.15351467691150458,
+        0.15935062450617063
+      ]
+    }
+  ]
+}

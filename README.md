@@ -103,6 +103,61 @@ Note that L=16 degrades *more* in the deep interior than L=4 despite far greater
 and capacity, which is consistent with 16 hops still being well short of an 80-hop
 diameter.
 
+### A confound in this sweep, found after publishing it
+
+The sweep above varies diameter by making the strip longer at fixed cross-section, which
+means **node count rises with diameter**: 126, 246 and 486 nodes at diameters 20, 40 and
+80. So as the distance information must travel goes up, the number of supervised nodes
+per training graph goes up with it. The two effects are not separable in this design, and
+I should have caught that before putting a diameter trend in a README.
+
+Two things follow, and they point in opposite directions.
+
+*It weakens the aggregate claim badly.* A flat aggregate curve is not evidence of no
+effect. It is equally consistent with under-reaching being cancelled by the extra
+supervision arriving at the same time.
+
+*It does not obviously destroy the deep-band claim.* More supervision should make the
+deep interior easier, so the confound pushes against the observed +48% and +85%
+degradation rather than producing it. The effect appearing anyway is suggestive. But
+"suggestive despite a confound" is an argument, not a controlled measurement, and larger
+domains also change the character of the target field, so I am not going to claim more
+than that.
+
+The corrected experiment trades width for length, choosing `(aspect_ratio, ny)` pairs
+that hold `nx * ny` fixed, so the strip gets longer *and thinner* and node count stays
+put. That pins nodes at 416 to 420 while diameter spans 34 to 104:
+
+```bash
+python examples/controlled_sweep.py --nodes 420
+```
+
+Until that finishes, treat the diameter *trend* here as unresolved. The
+architecture *ranking* at each fixed diameter is unaffected by this confound, because all
+four models see exactly the same graphs, and that ranking is what the five-seed result
+below tests.
+
+### It does not reproduce in 3D
+
+Running the same protocol on the 3D nonlinear problem gives a **negative result**, and it
+is reported here rather than left in a results directory. Aggregate and deep-band error
+both *fall* as diameter grows, for every architecture:
+
+| deepest band | d=15 | d=27 | d=39 | change |
+|---|---:|---:|---:|---:|
+| MeshGraphNet L=4 | 0.305 | 0.223 | 0.160 | **-48%** |
+| MeshGraphNet L=16 | 0.227 | 0.226 | 0.181 | **-20%** |
+| MGN-Transformer L=4 | 0.289 | 0.153 | 0.159 | **-45%** |
+
+The 3D sweep carries the same node-count confound (208, 400, 592 nodes), and here it is
+evidently strong enough to dominate. So this is not yet evidence that under-reaching is
+absent in 3D; it is evidence that **this experimental design cannot measure it**, in
+either dimension.
+
+What does survive in 3D is the ranking: the transformer beats the parameter-matched
+baseline at all three diameters, by 28%, 50% and 25%. Raw output in
+[`benchmarks/sweep3d.json`](benchmarks/sweep3d.json).
+
 **One more honest wrinkle.** The transformer is not uniformly better band by band. It is
 clearly best nearest the boundary (0.045 to 0.048 against 0.070 to 0.113) but it is
 consistently *worse* than the shallow baseline in band 2 at all three diameters. So the
