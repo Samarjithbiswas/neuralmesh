@@ -73,8 +73,9 @@ def main(argv: list[str] | None = None) -> int:
     labels = list(per_seed[0]["rel_l2"].keys())
 
     print("\n" + "=" * 74)
-    print(f"{args.seeds} seeds, aspect {args.aspect:g}, "
-          f"diameter {per_seed[0]['graph_diameter']}")
+    print(
+        f"{args.seeds} seeds, aspect {args.aspect:g}, diameter {per_seed[0]['graph_diameter']}"
+    )
     print("=" * 74)
     print(f"{'architecture':<26}{'params':>9}{'mean relL2':>12}{'std':>9}{'min':>9}{'max':>9}")
     print("-" * 74)
@@ -95,8 +96,10 @@ def main(argv: list[str] | None = None) -> int:
             "deep_std": statistics.stdev(deep) if len(deep) > 1 else 0.0,
             "deep_values": deep,
         }
-        print(f"{lab:<26}{summary[lab]['params']:>9,}{summary[lab]['mean']:>12.4f}"
-              f"{sd:>9.4f}{min(vals):>9.4f}{max(vals):>9.4f}")
+        print(
+            f"{lab:<26}{summary[lab]['params']:>9,}{summary[lab]['mean']:>12.4f}"
+            f"{sd:>9.4f}{min(vals):>9.4f}{max(vals):>9.4f}"
+        )
 
     # paired comparison: transformer against the shallow parameter-matched baseline
     shallow = next(
@@ -109,9 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         diffs = [
             s["rel_l2"][shallow] - s["rel_l2"][trans] for s in per_seed
         ]  # positive means the transformer is better
-        rel = [
-            100.0 * d / s["rel_l2"][shallow] for d, s in zip(diffs, per_seed)
-        ]
+        rel = [100.0 * d / s["rel_l2"][shallow] for d, s in zip(diffs, per_seed)]
         agree = sum(1 for d in diffs if d > 0)
         paired = {
             "baseline": shallow,
@@ -124,14 +125,17 @@ def main(argv: list[str] | None = None) -> int:
         }
         print("\npaired comparison, within each seed")
         print(f"  {trans} against {shallow}")
-        print("  per-seed improvement: "
-              + ", ".join(f"{x:+.1f}%" for x in rel))
-        print(f"  mean {paired['mean_improvement_pct']:+.1f}%  "
-              f"std {paired['std_improvement_pct']:.1f}%  "
-              f"sign agrees on {agree}/{len(diffs)} seeds")
+        print("  per-seed improvement: " + ", ".join(f"{x:+.1f}%" for x in rel))
+        print(
+            f"  mean {paired['mean_improvement_pct']:+.1f}%  "
+            f"std {paired['std_improvement_pct']:.1f}%  "
+            f"sign agrees on {agree}/{len(diffs)} seeds"
+        )
         if agree != len(diffs):
-            print("  NOTE: the sign does not agree on every seed. The effect is not "
-                  "robust at this budget.")
+            print(
+                "  NOTE: the sign does not agree on every seed. The effect is not "
+                "robust at this budget."
+            )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
