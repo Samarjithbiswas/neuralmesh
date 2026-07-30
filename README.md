@@ -8,6 +8,7 @@ just add parameters?**
 [![PyTorch](https://img.shields.io/badge/PyTorch-CPU%20only-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/license-MIT-34d399)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-72-34d399)](tests/)
+[![Cite](https://img.shields.io/badge/cite-CITATION.cff-a78bfa)](CITATION.cff)
 
 A message-passing network with `L` layers can only see `L` hops. For an elliptic PDE
 such as steady diffusion, the solution at an interior node depends on **every**
@@ -51,6 +52,12 @@ identical seeds. Relative `L2` error on the test split, interior nodes only.
 
 Reproduce with `python examples/run_underreach.py --sweep 4 8 16 --samples 70 --epochs 90`.
 Raw output is committed under [`benchmarks/`](benchmarks/).
+
+<p align="center">
+  <img src="docs/underreach.png" alt="Aggregate error shows no diameter trend; deep-interior error shows local models degrading while the global model stays flat" width="100%">
+</p>
+
+<p align="center"><sub>Regenerate with <code>python examples/plot_results.py</code> (needs <code>pip install -e ".[plot]"</code>).</sub></p>
 
 | diameter | control (no comms) | MeshGraphNet L=4 | MeshGraphNet L=16 | **MGN-Transformer L=4** |
 |---:|---:|---:|---:|---:|

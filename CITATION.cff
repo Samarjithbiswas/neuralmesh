@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "neuralmesh: a controlled measurement of under-reaching in mesh graph networks"
+message: "If you use this software or its results, please cite it."
+type: software
+authors:
+  - family-names: Biswas
+    given-names: Samarjith
+    affiliation: "NewFrontiers of Sound Center, University of Arizona"
+repository-code: "https://github.com/Samarjithbiswas/neuralmesh"
+url: "https://github.com/Samarjithbiswas/neuralmesh"
+license: MIT
+version: 0.1.0
+date-released: "2026-07-30"
+keywords:
+  - graph neural network
+  - message passing
+  - under-reaching
+  - finite element method
+  - surrogate model
+  - scientific machine learning
+abstract: >-
+  A message-passing network with L layers has a receptive field of exactly L hops. For
+  an elliptic PDE the solution at an interior node depends on every boundary value, so
+  once the graph diameter exceeds L the architecture cannot represent the solution.
+  This repository measures whether interleaving global attention removes that
+  limitation, under controls that make the answer interpretable: parameter counts
+  matched to within 0.7 percent, a no-communication control as a floor, and error
+  resolved by distance from the driven boundary. Ground truth is a P1 finite element
+  solver included in the repository and verified to second-order convergence. Across
+  graph diameters of 20, 40 and 80, attention reduces aggregate error by 42, 40 and 42
+  percent against the parameter-matched baseline. The reach-limited baseline does not
+  degrade with diameter in the aggregate metric; the effect appears only in the
+  distance-resolved metric, where mid-domain error grows 48 and 85 percent for the two
+  local models while remaining flat for the global one.
