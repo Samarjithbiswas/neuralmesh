@@ -1,0 +1,80 @@
+{
+  "aspect_ratio": 7.2857,
+  "n_nodes": 416,
+  "graph_diameter": 51,
+  "n_train": 49,
+  "epochs": 90,
+  "band_edges": [
+    0.0,
+    0.125,
+    0.25,
+    0.375,
+    0.5
+  ],
+  "results": [
+    {
+      "name": "node_mlp",
+      "label": "node MLP (no comms)",
+      "n_parameters": 17281,
+      "hidden_dim": 64,
+      "n_blocks": 4,
+      "receptive_hops": 0,
+      "test_mse": 0.47067396181889554,
+      "test_rel_l2": 0.9686777320775118,
+      "rel_l2_by_band": [
+        1.0098567948706696,
+        0.958527513090547,
+        0.7673144712206558,
+        0.7077540181421168
+      ]
+    },
+    {
+      "name": "meshgraphnet",
+      "label": "MeshGraphNet L=4",
+      "n_parameters": 130113,
+      "hidden_dim": 64,
+      "n_blocks": 4,
+      "receptive_hops": 4,
+      "test_mse": 0.03403139296411113,
+      "test_rel_l2": 0.28481221199035645,
+      "rel_l2_by_band": [
+        0.2597765891760446,
+        0.7070949789787986,
+        0.1725071696059238,
+        0.23136481699501502
+      ]
+    },
+    {
+      "name": "meshgraphnet",
+      "label": "MeshGraphNet L=16",
+      "n_parameters": 480321,
+      "hidden_dim": 64,
+      "n_blocks": 16,
+      "receptive_hops": 16,
+      "test_mse": 0.0068893864200535145,
+      "test_rel_l2": 0.13060961325060239,
+      "rel_l2_by_band": [
+        0.06927758145543864,
+        0.25094585485364135,
+        0.15207548822846614,
+        0.22783612736818473
+      ]
+    },
+    {
+      "name": "mesh_graph_transformer",
+      "label": "MGN-Transformer L=4",
+      "n_parameters": 130981,
+      "hidden_dim": 52,
+      "n_blocks": 4,
+      "receptive_hops": -1,
+      "test_mse": 0.004361672067633745,
+      "test_rel_l2": 0.08143206482583826,
+      "rel_l2_by_band": [
+        0.0483537576866161,
+        0.1931655474701445,
+        0.11313530094395259,
+        0.20136681977194137
+      ]
+    }
+  ]
+}

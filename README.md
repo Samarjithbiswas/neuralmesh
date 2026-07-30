@@ -103,7 +103,60 @@ Note that L=16 degrades *more* in the deep interior than L=4 despite far greater
 and capacity, which is consistent with 16 hops still being well short of an 80-hop
 diameter.
 
-### A confound in this sweep, found after publishing it
+### The controlled experiment, and what it did to the headline
+
+Everything below this heading was measured after the confound was found. It is the
+result that should be read first, because it contradicts the claim the repository was
+built around.
+
+**The design.** Vary diameter while holding node count fixed, by trading strip width for
+length. Node count pinned at 416 to 420 while diameter spans 34 to 104. Raw output in
+[`benchmarks/controlled/`](benchmarks/controlled/).
+
+**What under-reaching predicts.** Reach-limited models should get *worse* as diameter
+grows, and extra reach should therefore buy *more* as diameter grows. Concretely, the gap
+between MeshGraphNet L=16 and L=4 should widen with diameter, because 16 hops covers a
+larger fraction of a short domain than of a long one.
+
+**What actually happens.** The gap collapses.
+
+| | diameter 34 | diameter 104 |
+|---|---:|---:|
+| deep local (L=16) beats shallow local (L=4) by | **59%** | **2%** |
+| global attention beats shallow local by | **74%** | **15%** |
+
+At diameter 104, sixteen hops of receptive field buys essentially nothing over four hops,
+despite 3.7x the parameters. That is the opposite of the prediction, and it is the
+central negative result of this repository.
+
+**The transformer still wins, but by less.** At diameter 104, across four seeds:
+
+```
+control (no comms)   0.9387 +/- 0.0677
+MeshGraphNet L=4     0.1598 +/- 0.0431
+MeshGraphNet L=16    0.1574 +/- 0.0500
+MGN-Transformer L=4  0.1358 +/- 0.0274
+```
+
+It has the lowest mean, but it beats the deep local baseline on only **2 of 4 seeds** and
+the shallow one on 3 of 4. Compare that to the tight, large margin at moderate diameter.
+The advantage is real and it erodes.
+
+**A single-seed result I nearly published.** The first controlled run showed the
+transformer *losing* to the deep local model at diameter 104 (0.1594 against 0.1089), and
+I was ready to report a reversal. Three more seeds show that run was on the unlucky tail:
+the mean is 0.1358 and the transformer is still ahead. The reversal was noise. This is
+recorded because one seed at the extreme of a sweep is exactly where a wrong headline
+comes from, and because the earlier version of this file had already made a scaling claim
+from single-seed data once.
+
+**So what does the evidence support?** That global attention gives a large, consistent
+advantage at moderate graph diameter, and that the advantage shrinks rather than grows as
+diameter increases. It does not support under-reaching as the operative mechanism, because
+the direct test of that mechanism, extra hops of reach, stops mattering exactly where the
+theory says it should matter most.
+
+### A confound in the original sweep, found after publishing it
 
 The sweep above varies diameter by making the strip longer at fixed cross-section, which
 means **node count rises with diameter**: 126, 246 and 486 nodes at diameters 20, 40 and

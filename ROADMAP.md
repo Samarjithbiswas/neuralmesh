@@ -29,7 +29,7 @@ listed as not done is not done, and the README should not read as though it were
 | Gap | Why it matters | Status |
 |---|---|---|
 | Learned models trained on the 3D nonlinear problem | Done. The result is **negative**: error falls with diameter in 3D, so the 2D signature does not reproduce. See below. | done, negative |
-| A diameter sweep that is not confounded | Both sweeps raise node count with diameter, so supervision and required reach move together. `examples/controlled_sweep.py` holds nodes fixed at ~420 while diameter spans 34 to 104. | running |
+| A diameter sweep that is not confounded | Done. Node count held at 416-420 across diameter 34 to 104. Result contradicts the thesis: extra receptive field stops mattering as diameter grows. | done, negative |
 | Published operator baselines | The comparison is currently between three architectures written here. A reviewer will ask about FNO, GNO, DeepONet, Transolver, and a published MeshGraphNet configuration. | not started |
 | Larger datasets | 49 training cases per configuration. Hundreds to thousands would be needed before absolute accuracy means anything. | not started |
 | Training to convergence | 90 epochs with all four models still improving. Ranking under a shared short budget is defensible; absolute numbers are not. | not started |
@@ -57,14 +57,19 @@ happens to push against the deep-band finding, which is why it is suggestive rat
 dead, but it is not a controlled measurement. The 3D replication then produced the
 opposite trend, consistent with the confound dominating.
 
-**What is actually defensible today**, and it is less than the above: at any *fixed*
-diameter, with parameter counts matched and all models seeing identical graphs, the
-global-attention variant beats the reach-limited baseline. That holds in 2D at five seeds
-(+46.0%, sign agreeing 5/5) and in 3D at all three diameters (+28%, +50%, +25%). That is a
-ranking result, not a scaling law, and a ranking result is a workshop paper rather than a
-journal one.
+**What is actually defensible today**, after the controlled sweep: global attention gives
+a large advantage at moderate diameter (74% over the parameter-matched baseline at
+diameter 34) and a small, seed-inconsistent one at large diameter (15%, winning on 2 of 4
+seeds at diameter 104). The advantage **shrinks** with diameter.
 
-Whether the scaling claim comes back depends on the controlled sweep.
+The mechanism is not under-reaching. The direct test of that mechanism is whether extra
+receptive field buys more as domains grow, and it buys less: MeshGraphNet L=16 beats L=4
+by 59% at diameter 34 and by 2% at diameter 104. Sixteen hops stops being worth having
+exactly where the theory says it should matter most.
+
+That leaves an open and more interesting question, which is what Phase 3 now exists to
+answer: if reach is not the operative variable, what is attention actually buying, and do
+the spectral and kernel operators buy the same thing or something different?
 
 **Realistic venues:** Journal of Computational Physics, Computer Methods in Applied
 Mechanics and Engineering, Engineering Applications of Artificial Intelligence, or a
