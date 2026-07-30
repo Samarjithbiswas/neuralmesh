@@ -35,6 +35,16 @@ class ModelConfig:
     dropout: float = 0.0
     mlp_layers: int = 2
 
+    # Operator-baseline settings. Kept on the shared config so every architecture is
+    # built the same way and parameter matching works across all six without special
+    # cases at the call site.
+    spatial_dim: int = 2
+    grid_resolution: int = 32
+    fourier_modes: int = 8
+    basis_size: int = 64
+    gno_radius: float = 0.25
+    max_neighbours: int = 24
+
     def to_dict(self) -> dict:
         return asdict(self)
 
@@ -183,14 +193,22 @@ class MeshGraphTransformer(_EncodeProcessDecode):
         return -1 if self.attn_at else self.cfg.n_blocks
 
 
-ARCHITECTURES: dict[str, type[_EncodeProcessDecode]] = {
+from .operators import OPERATORS  # noqa: E402  (placed here to avoid a cycle)
+
+#: Every architecture the study can build. The first three are written here; the last
+#: three are the published operator families a reviewer will ask about.
+ARCHITECTURES: dict[str, type[nn.Module]] = {
     "node_mlp": NodeMLP,
     "meshgraphnet": MeshGraphNet,
     "mesh_graph_transformer": MeshGraphTransformer,
+    **OPERATORS,
 }
 
+#: Which entries are reimplementations of published work rather than this repository's own.
+PUBLISHED_BASELINES = tuple(OPERATORS)
 
-def build_model(name: str, cfg: ModelConfig | None = None) -> _EncodeProcessDecode:
+
+def build_model(name: str, cfg: ModelConfig | None = None) -> nn.Module:
     """Instantiate an architecture by name."""
     if name not in ARCHITECTURES:
         raise KeyError(f"unknown architecture {name!r}; choose from {sorted(ARCHITECTURES)}")
