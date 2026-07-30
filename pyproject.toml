@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neuralmesh"
+version = "0.1.0"
+description = "A controlled measurement of under-reaching in mesh graph networks, with a verified finite element solver for ground truth"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Samarjith Biswas" }]
+keywords = [
+    "finite-element",
+    "graph-neural-network",
+    "message-passing",
+    "surrogate-model",
+    "scientific-machine-learning",
+    "under-reaching",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# scipy is used for the sparse assembly and the direct solve. torch is CPU-only here
+# by design: every result in the README is reproducible on a laptop, and pinning a
+# CUDA build would make that false for most readers.
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "torch>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4"]
+plot = ["matplotlib>=3.7"]
+
+[project.scripts]
+neuralmesh = "neuralmesh.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Samarjithbiswas/neuralmesh"
+Issues = "https://github.com/Samarjithbiswas/neuralmesh/issues"
+
+[tool.setuptools.packages.find]
+include = ["neuralmesh*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = ["slow: needs more than a few seconds, deselect with -m 'not slow'"]
+
+[tool.ruff]
+line-length = 95
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "E741",  # ambiguous name: l is the standard symbol for message-passing depth
+    "B905",  # zip strict= is 3.10+, kept off for readability in short zips
+]
+
+[tool.ruff.lint.per-file-ignores]
+"neuralmesh/__init__.py" = ["F401"]  # re-exports are the point of this file
+"tests/*" = ["B011"]

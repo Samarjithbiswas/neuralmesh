@@ -1,0 +1,35 @@
+[
+  {
+    "aspect_ratio": 4.0,
+    "n_nodes": 126,
+    "graph_diameter": 20,
+    "rel_l2": {
+      "node MLP (no comms)": 0.9750460386276245,
+      "MeshGraphNet L=4": 0.1810680634596131,
+      "MeshGraphNet L=16": 0.1201708387922157,
+      "MGN-Transformer L=4": 0.10543075440959497
+    }
+  },
+  {
+    "aspect_ratio": 8.0,
+    "n_nodes": 246,
+    "graph_diameter": 40,
+    "rel_l2": {
+      "node MLP (no comms)": 0.9665729891170155,
+      "MeshGraphNet L=4": 0.16270063004710458,
+      "MeshGraphNet L=16": 0.11360357837243514,
+      "MGN-Transformer L=4": 0.09736777503382076
+    }
+  },
+  {
+    "aspect_ratio": 16.0,
+    "n_nodes": 486,
+    "graph_diameter": 80,
+    "rel_l2": {
+      "node MLP (no comms)": 0.9046485640785911,
+      "MeshGraphNet L=4": 0.16664518348195337,
+      "MeshGraphNet L=16": 0.1329412656751546,
+      "MGN-Transformer L=4": 0.09606700187379663
+    }
+  }
+]
