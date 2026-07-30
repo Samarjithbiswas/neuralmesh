@@ -30,11 +30,11 @@ listed as not done is not done, and the README should not read as though it were
 |---|---|---|
 | Learned models trained on the 3D nonlinear problem | Done. The result is **negative**: error falls with diameter in 3D, so the 2D signature does not reproduce. See below. | done, negative |
 | A diameter sweep that is not confounded | Done. Node count held at 416-420 across diameter 34 to 104. Result contradicts the thesis: extra receptive field stops mattering as diameter grows. | done, negative |
-| Published operator baselines | The comparison is currently between three architectures written here. A reviewer will ask about FNO, GNO, DeepONet, Transolver, and a published MeshGraphNet configuration. | not started |
+| Published operator baselines | Done. FNO, DeepONet and GNO implemented and benchmarked. They diverge by a factor of twelve despite all being global, which is now the repository's main result. | done |
 | Larger datasets | 49 training cases per configuration. Hundreds to thousands would be needed before absolute accuracy means anything. | not started |
 | Training to convergence | 90 epochs with all four models still improving. Ranking under a shared short budget is defensible; absolute numbers are not. | not started |
 | More than five seeds | Five gives a sign test at p ≈ 0.03 and a wide interval on the magnitude. Ten to twenty would tighten it. | partial |
-| A second physics | Diffusion only. Linear elasticity on the same tetrahedral meshes would test whether the finding is about ellipticity or about this operator. | not started |
+| A second physics | Solver done: 3D linear elasticity, verified by exactly six rigid-body modes, patch test to 1e-11, and second-order convergence. The learned experiment on it has not been run. | partial |
 
 ---
 
@@ -119,7 +119,7 @@ trading strip width for length. This is the experiment that should have been run
 Until it returns, the diameter *trend* is unresolved in both dimensions and the README
 says so.
 
-**Phase 3, baselines.** Implement FNO on the structured box meshes (its FFT needs the
+**Phase 3, baselines. Done.** Implement FNO on the structured box meshes (its FFT needs the
 regular grid, which is a genuine limitation worth documenting rather than hiding),
 DeepONet, and a graph neural operator. Match parameter budgets and training budgets as
 carefully as the current comparison does.
@@ -127,7 +127,7 @@ carefully as the current comparison does.
 **Phase 4, scale.** Thousands of solves, training to convergence, ten to twenty seeds,
 proper confidence intervals rather than a sign test.
 
-**Phase 5, a second physics.** Linear elasticity, then hyperelasticity, on the same
+**Phase 5, a second physics. Solver done, experiment not run.** Linear elasticity, then hyperelasticity, on the same
 meshes. This is what distinguishes a claim about elliptic problems from a claim about one
 operator.
 

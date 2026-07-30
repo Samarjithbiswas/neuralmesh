@@ -103,6 +103,69 @@ Note that L=16 degrades *more* in the deep interior than L=4 despite far greater
 and capacity, which is consistent with 16 hops still being well short of an 80-hop
 diameter.
 
+### Globality is not one property: six architectures compared
+
+This is the most useful result in the repository, and it is the one that came from being
+wrong about the previous one.
+
+Once the controlled sweep showed that reach is not the operative variable, the question
+became what attention is actually buying, and whether the other global mechanisms buy the
+same thing. Three published operators were implemented on the identical interface, so the
+trainer, the optimiser, the budget and the metric are shared, and parameter counts are
+matched to the MeshGraphNet baseline.
+
+Node count held near 420. Three seeds. Raw output in
+[`benchmarks/operators/`](benchmarks/operators/).
+
+| architecture | params | d = 34 | d = 104 |
+|---|---:|---:|---:|
+| control (no comms) | 17,281 | 1.056 ± 0.080 | 0.933 ± 0.064 |
+| MeshGraphNet L=4 (local) | 130,113 | 0.375 ± 0.027 | 0.159 ± 0.067 |
+| **MGN-Transformer L=4** | 130,981 | **0.077 ± 0.014** | **0.137 ± 0.049** |
+| FNO | 132,561 | 0.242 ± 0.042 | 0.658 ± 0.064 |
+| DeepONet | 100,225 | 0.894 ± 0.125 | 0.956 ± 0.037 |
+| GNO | 120,313 | 0.203 ± 0.013 | 0.687 ± 0.020 |
+
+**All four of the bottom models are global.** Every one of them can move information
+across the whole domain in a single layer. Yet at diameter 34 they range from 0.077 to
+0.894, a factor of twelve, and DeepONet is barely distinguishable from a model with no
+communication at all.
+
+So globality is not the property that matters. **The mechanism is.**
+
+**What happens on the long thin domain is sharper still.** Going from diameter 34 to 104,
+holding node count fixed:
+
+* attention degrades mildly, 0.077 to 0.137
+* the purely local baseline *improves*, 0.375 to 0.159
+* FNO collapses, 0.242 to 0.658
+* GNO collapses, 0.203 to 0.687
+
+The two spectral and kernel operators are beaten by the no-communication control's own
+scale at the large diameter, and both are beaten decisively by plain local message
+passing. Only attention survives the aspect-ratio change.
+
+**The FNO failure is mechanistic and was predicted before it was measured.** FNO needs a
+regular grid, so node values are resampled onto one. That resampling error is recorded
+every run: **0.263 at diameter 34, rising to 0.362 at diameter 104**. A 34.7:1 strip on a
+square grid puts the entire cross-section inside a fraction of one cell. The model is not
+failing at physics, it is failing at geometry, which is exactly why geometry-aware FNO
+variants exist.
+
+**The DeepONet result is the most interesting.** It is global in the strongest sense: the
+branch network sees the entire input at once. But it compresses that input into a fixed
+set of coefficients over a learned global basis, and the solutions here contain a Gaussian
+source at a sampled location. Local structure cannot be represented by a small global
+basis, so the model lands near the no-communication control at both diameters. Global
+reach with a global bottleneck is not the same as global reach with local detail retained.
+
+**What the evidence now supports**, and it is narrower and more specific than the claim
+this repository started with: the architecture that wins keeps local geometric structure
+*and* adds a global path, and it does so in a way that does not depend on the domain being
+grid-shaped. Attention with a learned distance bias does that. A spectral transform does
+not, because it needs the grid. A global bottleneck does not, because it discards local
+detail. Reach alone explains none of it.
+
 ### The controlled experiment, and what it did to the headline
 
 Everything below this heading was measured after the confound was found. It is the
